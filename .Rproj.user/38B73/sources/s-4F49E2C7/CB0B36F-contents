@@ -1,0 +1,112 @@
+library(readr)
+library(dplyr)
+#取得104、105、106年度來台唸書學生資料(依國家分類)
+data103country <- read_csv("https://quality.data.gov.tw/dq_download_csv.php?nid=6289&md5_url=25f64d5125016dcd6aed42e50c972ed0")
+data104country <- read_csv("https://quality.data.gov.tw/dq_download_csv.php?nid=6289&md5_url=4d3e9b37b7b0fd3aa18a388cdbc77996")
+data105country <- read_csv("https://quality.data.gov.tw/dq_download_csv.php?nid=6289&md5_url=19bedf88cf46999da12513de755c33c6")
+data106country <- read_csv("https://quality.data.gov.tw/dq_download_csv.php?nid=6289&md5_url=50e3370f9f8794f2054c0c82a2ed8c91")
+
+#新增欄位totalStudent103儲存103年度來台唸書學生的加總
+data103country$totalStudent103<-0
+for(n in 1:length(rownames(data103country))){
+  data103country$totalStudent103[n]<-sum(data103country[n,c(-1,-2)])
+}
+#新增欄位totalStudent104儲存104年度來台唸書學生的加總
+data104country$totalStudent104<-0
+for(n in 1:length(rownames(data104country))){
+  data104country$totalStudent104[n]<-sum(data104country[n,c(-1,-2)])
+}
+#新增欄位totalStudent105儲存105年度來台唸書學生的加總
+data105country$totalStudent105<-0
+for(n in 1:length(rownames(data105country))){
+  data105country$totalStudent105[n]<-sum(data105country[n,c(-1,-2)])
+}
+#新增欄位totalStudent106儲存106年度來台唸書學生的加總
+data106country$totalStudent106<-0
+for(n in 1:length(rownames(data106country))){
+  data106country$totalStudent106[n]<-sum(data106country[n,c(-1,-2)])
+}
+#合併103、104、105、106年度來台唸書學生資料
+join103104<-inner_join(data103country,data104country,by="國別")
+join105106<-inner_join(data105country,data106country,by="國別")
+join103104105106<-inner_join(join103104,join105106,by="國別")
+#取出學生數量前十名的國家與總人數並由大到小排序
+join103104105106<-
+  join103104105106%>%
+  mutate(totalStudent=totalStudent103+totalStudent104+totalStudent105+totalStudent106)%>%
+  select("國別",totalStudent)%>%
+  arrange(desc(totalStudent))
+#-----------------------------------------------------------------------------------
+#1-2
+#取得104、105、106年度來台唸書學生資料(依學校分類)
+data103school <- read_csv("https://quality.data.gov.tw/dq_download_csv.php?nid=6289&md5_url=a6d1469f39fe41fb81dbfc373aef3331")
+data104school <- read_csv("https://quality.data.gov.tw/dq_download_csv.php?nid=6289&md5_url=8baeae81cba74f35cf0bb1333d3d99f5")
+data105school <- read_csv("https://quality.data.gov.tw/dq_download_csv.php?nid=6289&md5_url=1a485383cf9995da679c3798ab4fd681")
+data106school <- read_csv("https://quality.data.gov.tw/dq_download_csv.php?nid=6289&md5_url=883e2ab4d5357f70bea9ac44a47d05cc")
+#清洗資料中有雜值的欄位並轉換型態
+data103school$`非學位生-大陸研修生`<-gsub("…","0",data103school$`非學位生-大陸研修生`)
+data103school$`非學位生-大陸研修生`<-as.numeric(data103school$`非學位生-大陸研修生`)
+data104school$`非學位生-大陸研修生`<-gsub("…","0",data104school$`非學位生-大陸研修生`)
+data104school$`非學位生-大陸研修生`<-as.numeric(data104school$`非學位生-大陸研修生`)
+
+#新增欄位totalStudent103儲存103年度來台唸書學生的加總
+data103school$totalStudent103<-0
+for(n in 1:length(rownames(data103school))){
+  data103school$totalStudent103[n]<-sum(data103school[n,c(-1,-2,-3)])
+}
+#新增欄位totalStudent104儲存104年度來台唸書學生的加總
+data104school$totalStudent104<-0
+for(n in 1:length(rownames(data104school))){
+  data104school$totalStudent104[n]<-sum(data104school[n,c(-1,-2,-3)])
+}
+#新增欄位totalStudent105儲存105年度來台唸書學生的加總
+data105school$totalStudent105<-0
+for(n in 1:length(rownames(data105school))){
+  data105school$totalStudent105[n]<-sum(data105school[n,c(-1,-2,-3)])
+}
+#新增欄位totalStudent106儲存106年度來台唸書學生的加總
+data106school$totalStudent106<-0
+for(n in 1:length(rownames(data106school))){
+  data106school$totalStudent106[n]<-sum(data106school[n,c(-1,-2,-3)])
+}
+#合併104、105、106年度來台唸書學生資料
+join103104<-inner_join(data103school,data104school,by="學校名稱")
+join105106<-inner_join(data105school,data106school,by="學校名稱")
+join103104105106_2<-inner_join(join103104,join105106,by="學校名稱")
+#取出學生數量前十名的學校與總人數並由大到小排序
+join103104105106_2<-
+  join103104105106_2%>%
+  mutate(totalStudent=totalStudent103+totalStudent104+totalStudent105+totalStudent106)%>%
+  select("學校名稱",totalStudent)%>%
+  arrange(desc(totalStudent))
+#----------------------------------------------------------------------------2
+library(ggplot2)
+#加總學生數量前十名以外的總人數，歸類為"其他國家"
+other<-data.frame("國別"="其他國家",totalStudent=sum(join103104105106[-(1:10),2]),stringsAsFactors=F)
+#將其他國家分類加入只有前十名國家的data.frame
+join103104105106_bar<-
+  join103104105106%>%
+  head(10)%>%
+  rbind(other)
+#製作bar chart
+ggplot(join103104105106_bar,aes(x=`國別`,y=totalStudent))+
+  geom_bar(stat="identity")+
+  labs(x="國別",y="學生人數",title="各個國家來台灣唸書的學生人數")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+#---------------------------------------------------------------------------333
+library(ggmap)
+library(choroplethr)
+library(choroplethrMaps)
+library(readr)
+library(dplyr)
+comparision <- read_csv("C:/Users/He Yu-Ting/Desktop/CountriesComparisionTable.csv")
+
+resourse<-inner_join(join103104105106,comparision,by=c("國別"="Taiwan"))
+str(resourse)
+resourse<-
+  resourse[c(-135,-136),]%>%
+  filter(English!="Unmatch")
+result<-data.frame("region"=resourse$English,"value"=resourse$totalStudent,stringsAsFactors = F)
+country_choropleth(result,title ="各個國家來台灣唸書的學生人數",num_colors = 9)
+

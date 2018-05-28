@@ -1,0 +1,55 @@
+#--------------------999
+library(dplyr)
+library(tidyr)
+library(reshape2)
+finaldata<-inner_join(join103104105106,abroad_result1,
+                      by=c("國別"="對方學校(機構)國別(地區)"))
+finaldata$out<-as.numeric(finaldata$總人數) 
+finaldata$come<-finaldata$totalStudent
+finaldata<-
+  finaldata%>%
+  select("國別",out,come)
+
+tx1 <- gather(finaldata, key = key, value= value,out,come)
+tx1$row<-ifelse(tx1$key=="out",1,2)
+tx1<-tx1%>%arrange(國別)
+ggplot(tx1[1:30,], aes(x=國別, y=value, fill=row)) + 
+  geom_bar(stat="identity")+
+  xlab("\n國別")+
+  ylab("學生人數(淺色:來台/深色:離台)\n") +
+  labs(title="各國來台/離台讀書學生總人數比例圖")+
+  guides(fill=FALSE)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+ggplot(tx1[31:60,], aes(x=國別, y=value, fill=row)) + 
+  geom_bar(stat="identity") +
+  xlab("\n國別")+
+  ylab("學生人數(淺色:來台/深色:離台)\n") +
+  labs(title="各國來台/離台讀書學生總人數比例圖")+
+  guides(fill=FALSE)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+ggplot(tx1[61:90,], aes(x=國別, y=value, fill=row)) + 
+  geom_bar(stat="identity") +
+  xlab("\n國別")+
+  ylab("學生人數(淺色:來台/深色:離台)\n") +
+  labs(title="各國來台/離台讀書學生總人數比例圖")+
+  guides(fill=FALSE)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+ggplot(tx1[91:120,], aes(x=國別, y=value, fill=row)) + 
+  geom_bar(stat="identity") +
+  xlab("\n國別")+
+  ylab("學生人數(淺色:來台/深色:離台)\n") +
+  labs(title="各國來台/離台讀書學生總人數比例圖")+
+  guides(fill=FALSE)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+ggplot(tx1[121:length(rownames(tx1)),], aes(x=國別, y=value, fill=row)) + 
+  geom_bar(stat="identity") +
+  xlab("\n國別")+
+  ylab("學生人數(淺色:來台/深色:離台)\n") +
+  labs(title="各國來台/離台讀書學生總人數比例圖")+
+  guides(fill=FALSE)+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))

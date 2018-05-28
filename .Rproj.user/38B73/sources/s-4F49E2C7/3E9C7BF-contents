@@ -1,0 +1,81 @@
+#------------------------------------------------------------------------------444
+library(readr)
+library(dplyr)
+abroad_school<- read_csv("C:/Users/He Yu-Ting/Desktop/Student.csv")
+str(abroad_school)
+
+abroad_result1<-
+  abroad_school%>%
+  filter(學年度 %in% c("103","104"))%>%
+  select(`對方學校(機構)國別(地區)`,"小計")%>%
+  group_by(`對方學校(機構)國別(地區)`)%>%
+  summarise(總人數=sum(小計))%>%
+  arrange(desc(總人數))
+#
+abroad_result2<-
+  abroad_school%>%
+  filter(學年度 %in% c("103","104"))%>%
+  select("學校名稱","小計")%>%
+  group_by(學校名稱)%>%
+  summarise(總人數=sum(小計))%>%
+  arrange(desc(總人數))
+#---------------------------------------5555
+library(ggplot2)
+#加總學生數量前十名以外的總人數，歸類為"其他國家"
+other<-data.frame("對方學校(機構)國別(地區)"="其他國家","總人數"=sum(abroad_result1[-(1:10),2]),stringsAsFactors=F)
+other$`對方學校(機構)國別(地區)`<-other$對方學校.機構.國別.地區.
+other<-
+  other%>%
+  select("對方學校(機構)國別(地區)","總人數")
+#將其他國家分類加入只有前十名國家的data.frame
+abroad_result_bar<-
+  abroad_result1%>%
+  head(10)%>%
+  rbind(other)
+#製作bar chart
+ggplot(abroad_result_bar,aes(x=`對方學校(機構)國別(地區)`,y=`總人數`))+
+  geom_bar(stat="identity")+
+  labs(x="對方學校(機構)國別(地區)",y="總人數",title="台灣大專院校(全部)的學生去各國家進修交流人數")+
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 60, hjust = 1))
+#----------------------------------------------------666
+library(ggmap)
+library(choroplethr)
+library(choroplethrMaps)
+library(readr)
+library(dplyr)
+comparision <- read_csv("C:/Users/He Yu-Ting/Desktop/CountriesComparisionTable.csv")
+
+resourse<-inner_join(abroad_result1,comparision,by=c(`對方學校(機構)國別(地區)`="Taiwan"))
+str(resourse)
+resourse<-
+  resourse[c(-46),]%>%
+  filter(English!="Unmatch")
+result<-data.frame("region"=resourse$English,"value"=resourse$總人數,stringsAsFactors = F)
+country_choropleth(result,title ="台灣大專院校的學生去各國家進修交流人數",num_colors = 9)
+#----------------------------------------------------777
+library(readr)
+library(dplyr)
+abroad_world<- read_csv("https://ws.moe.edu.tw/Download.ashx?u=C099358C81D4876CC7586B178A6BD6D5062C39FB76BDE7EC7685C1A3C0846BCDD2B4F4C2FE907C3E7E96F97D24487065577A728C59D4D9A4ECDFF432EA5A114C8B01E4AFECC637696DE4DAECA03BB417&n=4E402A02CE6F0B6C1B3C7E89FDA1FAD0B5DDFA6F3DA74E2DA06AE927F09433CFBC07A1910C169A1845D8EB78BD7D60D7414F74617F2A6B71DC86D17C9DA3781394EF5794EEA7363C&icon=..csv")
+abroad_world<-
+  abroad_world%>%
+  select("國別","總人數")%>%
+  arrange(desc(總人數))
+
+#-----------------------------------------888888
+library(ggmap)
+library(choroplethr)
+library(choroplethrMaps)
+library(readr)
+library(dplyr)
+comparision <- read_csv("C:/Users/He Yu-Ting/Desktop/CountriesComparisionTable.csv")
+
+resourse<-inner_join(abroad_world,comparision,by=c("國別"="Taiwan"))
+str(resourse)
+resourse<-
+  resourse[c(-46),]%>%
+  filter(English!="Unmatch")
+result<-data.frame("region"=resourse$English,"value"=resourse$總人數,stringsAsFactors = F)
+country_choropleth(result,title ="台灣學生去各國家留學人數",num_colors = 9)
+
+
